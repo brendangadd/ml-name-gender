@@ -1,26 +1,26 @@
 import os
-import pandas
+import json
 from os.path import join as pjoin
 
-directory = pjoin('/', 'home', 'brendan', 'Downloads', 'names')
+directory = os.path.join(os.path.dirname(__file__), "names")
+savepath = os.path.join(os.path.dirname(__file__), "reference", "data.json")
 
 names = []
 targets = []
 
 def process_names(lines):
-  for line in lines:
-    parts = line.split(',')
-    names.append(parts[0].lower())
-    targets.append(parts[1] == 'M' and 1 or 0)
+    for line in lines:
+        parts = line.split(',')
+        names.append(parts[0].lower())
+        targets.append(parts[1] == 'M' and 1 or 0)
 
-for entry in [
-  f for f in os.scandir(directory)
-  if f.is_file() and f.name.endswith('.txt')
-]:
-  name_file = open(entry.path)
-  process_names(name_file.readlines())
-  name_file.close()
-  print(entry.name)
+files = [f for f in os.listdir(directory) if f.endswith(".txt")]
 
-frame = pandas.DataFrame({'name': names, 'target': targets})
-frame.to_csv('names.csv')
+for entry in files:
+    name_file = open(os.path.join(directory,entry))
+    process_names(name_file.readlines())
+    name_file.close()
+    #print(entry)
+
+with open(savepath, "w+") as f:
+    json.dump({'name': names, 'target': targets}, f)
